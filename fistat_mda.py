@@ -1,7 +1,7 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 
 import sys, getopt
-sys.path.append('/home/comcon1/DEVEL/pylib')
 from os import environ
 from read_ndx import GmxIndex
 from struct import *

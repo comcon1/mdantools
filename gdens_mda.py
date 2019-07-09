@@ -9,7 +9,6 @@ WARNING: Pay special attention to the key '-r' which set the atom of the referen
 '''
 
 import sys, getopt
-sys.path.append('/home/comcon1/DEVEL/pylib')
 from os import environ
 from read_ndx import GmxIndex
 from struct import *
