@@ -190,14 +190,14 @@ def main():
     heads = '******  ' + ''.join(map(lambda x: '|  %-12s | SD: %-9s ' % (x,x), _NDXGRPS))
 
     f = open(oufile, 'w')
-    f.write ('''
+    f.write ('''# %s
 # Starting density calculations over %d slices: %8.3f-%-8.3f [nm]
 # Trajectory borders: %d - %d [ps] | %d - %d [fr]
 # Statistical frame: %d [ps] | %d [fr]
 # GROUPS: %s
 # %s
-''' % ( _NSLICE, _FSLICE, (_FSLICE+_DSLICE*_NSLICE), __skiptime, __maxtime,
-       skipframes, maxframes, __dtime, dframes, ' '.join(_NDXGRPS), heads ) )
+''' % ( ' '.join(sys.argv), _NSLICE, _FSLICE, (_FSLICE+_DSLICE*_NSLICE), __skiptime,
+       __maxtime, skipframes, maxframes, __dtime, dframes, ' '.join(_NDXGRPS), heads ) )
 
     for i in range(DENS_STAT.shape[2]):
       x = _FSLICE + _DSLICE*i
