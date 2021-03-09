@@ -15,7 +15,7 @@ class GmxIndex:
         self._data[curnm] = []
         continue
       else:
-        ar = map(int,line.split())
+        ar = list(map(int,line.split()))
         self._data[curnm] += ar
     f.close()
 
@@ -23,4 +23,4 @@ class GmxIndex:
     return self._data[name]
 
   def getRNdx(self, name):
-    return map(lambda x: x-1, self._data[name])
+    return list(map(lambda x: x-1, self._data[name]))
