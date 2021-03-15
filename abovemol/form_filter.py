@@ -50,7 +50,9 @@ if infile == '' or bt_file == '' or tprfile == '' or lipid_residue == '':
 index_pl_b = np.array([34789, 35232, 70463, 70906, 106137, 106580, 141811, 142254]) - 1
 index_pl_e = index_pl_b + 442
 
-
+# THRESHOLD (Rxy - com_xy)^2 < Rthr^2 == THRESHOLD
+# default 400 i.e. Rthr = 2 nm
+# TODO: make parameter
 THRESHOLD = 400 # 2^2
 
 maxframes = 1e20
