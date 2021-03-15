@@ -10,6 +10,7 @@ WARNING: Pay special attention to the key '-r' which set the atom of the referen
 
 import sys, getopt
 from os import environ
+sys.path.append('..')
 from read_ndx import GmxIndex
 from struct import *
 from numpy import *
@@ -22,6 +23,7 @@ aa2sgs = 1.67262158
 def main():
     # starting params
     infile = ''
+    mask_prefix = ''
     tprfile = ''
     oufile = ''
     oufileD = ''
@@ -37,7 +39,7 @@ def main():
     _NDXGRPS = []
     # parse command line options
     try:
-      opts, args = getopt.getopt(sys.argv[1:], 'hi:o:d:b:s:x:t:r:')
+        opts, args = getopt.getopt(sys.argv[1:], 'hi:o:d:b:s:x:t:r:m:')
     except getopt.error as msg:
         print(msg)
         print('for help use -h')
@@ -47,7 +49,7 @@ def main():
         if o == '-h':
           print('''
 ./gdens.py -ssd0.pqr -iinput.xtc -oout.xvg -b0:300:10000
-           -d0.05:50:-1.0 -xindex.ndx:SOL:DPC [ -rDPC:C20 -h ]
+           -d0.05:50:-1.0 -xindex.ndx:SOL:DPC -m polymer [ -rDPC:C20 -h ]
                 ''')
           sys.exit(0)
         elif o == '-i':
@@ -76,12 +78,16 @@ def main():
             __ar = a.split(':')
             __RESNM = __ar[0]
             __REFAT = __ar[1]
+        elif o == '-m':
+            mask_prefix = a
+# TODO: add an ability to invert masks
 
-
-
-    if infile == '' or oufile == '' or tprfile == '':
+    if infile == '' or oufile == '' or tprfile == '' or mask_prefix == '':
         print('for help use -h')
         sys.exit(2)
+
+    btmask_file = mask_prefix + '_bt.txt'
+    upmask_file = mask_prefix + '_up.txt'
 
     un = Universe(tprfile, infile)
 
@@ -132,8 +138,8 @@ def main():
 
     rngs = range(skipframes, maxframes-skipframes, dframes)
 
-    fdup = open('up.txt', 'rb')
-    fdbt = open('bt.txt', 'rb')
+    fdup = open(upmask_file, 'rb')
+    fdbt = open(btmask_file, 'rb')
     # skipping
     for i in range(skipframes):
       bufup = fdup.read(mblock)
