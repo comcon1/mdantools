@@ -1,7 +1,7 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # coding: utf-8
 
-'''              
+'''
 MDAnTOOLs: GDENS_MDA
 Analogous of the 'gmx density' classical utility. The difference is the reference plane: here we attach the plane to the mean position of some lipid atom. The rest is the same: space is sliced with selected distance gap and mass density is calculated in every  slice.
 
@@ -37,15 +37,17 @@ def main():
     # parse command line options
     try:
       opts, args = getopt.getopt(sys.argv[1:], 'hi:o:d:b:s:x:t:r:')
-    except getopt.error, msg:
-        print msg
-        print 'for help use -h'
+    except getopt.error as msg:
+        print(msg)
+        print('for help use -h')
         sys.exit(2)
     # process options
     for o, a in opts:
         if o == '-h':
-          print './gdens.py -ssd0.pqr -iinput.xtc -oout.xvg -b0:300:10000 '+\
-              ' -d0.05:50:-1.0 -xindex.ndx:SOL:DPC [ -rDPC:C20 -h ]'
+          print('''
+./gdens.py -ssd0.pqr -iinput.xtc -oout.xvg -b0:300:10000
+           -d0.05:50:-1.0 -xindex.ndx:SOL:DPC [ -rDPC:C20 -h ]
+                ''')
           sys.exit(0)
         elif o == '-i':
             infile = a
@@ -74,14 +76,14 @@ def main():
             __RESNM = __ar[0]
             __REFAT = __ar[1]
 
-            
-            
+
+
     if infile == '' or oufile == '' or tprfile == '':
-        print 'for help use -h'
+        print('for help use -h')
         sys.exit(2)
-    
+
     un = Universe(tprfile, infile)
-    
+
     maxframes = int(__maxtime/un.trajectory.dt)
     dframes   = int(__dtime/un.trajectory.dt)
     skipframes = int(__skiptime/un.trajectory.dt)
@@ -96,27 +98,27 @@ def main():
       for __v in _NDXGRPS:
         ndx.append( ndxObj.getRNdx(__v) )
         ndxM.append(_allM[ndx[-1]])
-        print 'Group ',__v,', ',len(ndx[-1]),' elems'
+        print ('Group ',__v,', ',len(ndx[-1]),' elems')
 
 
-    print '''
+    print( '''
       Starting density calculations over %d slices: %8.3f-%-8.3f [Ang]
       Trajectory borders: %d - %d [fr]
       Statistical frame: %d [fr]
       Index: %s
       GROUPS: %s
-    ''' % ( _NSLICE, _FSLICE, (_FSLICE+_DSLICE*_NSLICE), skipframes, maxframes, \
-        dframes, _NDXNAME, ', '.join(_NDXGRPS))
+    '''  % ( _NSLICE, _FSLICE, (_FSLICE+_DSLICE*_NSLICE), skipframes, maxframes,
+        dframes, _NDXNAME, ', '.join(_NDXGRPS)) )
 
 
     DENS_STAT = []
 
     finished = False
     absolute = skipframes
-    
+
     # pointer to useful
     natm = un.atoms.n_atoms
-    
+
     # refatm
     _zh2   = un.dimensions[2]/2.
     refat1 = un.select_atoms( 'name %s and resname %s and prop z < %f' % \
@@ -131,7 +133,7 @@ def main():
       un.trajectory.next()
 
     while not finished:
-        print '\nOne! - ',un.trajectory.ts.time
+        print( '\nOne! - ',un.trajectory.ts.time )
         Z0_= array(un.trajectory.ts.dimensions[2])
 
         frames = 0
@@ -169,43 +171,45 @@ def main():
                 _frm[g,:] += _mdplus[::-1] # invert histogramm
 
             _cum += _frm * (0.5/box[0]/box[1]/_DSLICE)
-	    try:
-		    if (not un.trajectory.next() or _ts.frame > maxframes):
-		      finished = True
-		      break
-	    except IOError:
-		    finished = True
+            try:
+                if (not un.trajectory.next() or _ts.frame > maxframes):
+                    finished = True
                     break
-            print '.',
+            except IOError:
+                finished = True
+                break
+            print('.', end='')
             sys.stdout.flush()
         # a.u/ang^3
         DENS_STAT.append( _cum*(1.0/frames)*aa2sgs )
-    # end working with trajectory 
+    # end working with trajectory
 
     # converting array to numpy
     DENS_STAT = array(DENS_STAT)
 
+    heads = '******  ' + ''.join(map(lambda x: '|  %-12s | SD: %-9s ' % (x,x), _NDXGRPS))
+
     f = open(oufile, 'w')
-    f.write ('''
+    f.write ('''# %s
 # Starting density calculations over %d slices: %8.3f-%-8.3f [nm]
-# Trajectory borders: %d - %d [ps]
-# Statistical frame: %d [ps]
+# Trajectory borders: %d - %d [ps] | %d - %d [fr]
+# Statistical frame: %d [ps] | %d [fr]
 # GROUPS: %s
-#   x   |    F,V   |  +-m(F)
-''' % ( _NSLICE, _FSLICE, (_FSLICE+_DSLICE*_NSLICE), skipframes, maxframes,\
-      dframes, ' '.join(_NDXGRPS) ) )
+# %s
+''' % ( ' '.join(sys.argv), _NSLICE, _FSLICE, (_FSLICE+_DSLICE*_NSLICE), __skiptime,
+       __maxtime, skipframes, maxframes, __dtime, dframes, ' '.join(_NDXGRPS), heads ) )
 
     for i in range(DENS_STAT.shape[2]):
       x = _FSLICE + _DSLICE*i
       f.write('%8.3f  ' % x)
       for g in range(len(ndx)):
-        f.write('%10g %10g ' % ( average(DENS_STAT[:,g,i]), \
+        f.write('%15.7g %15.7g ' % ( average(DENS_STAT[:,g,i]), \
             std(DENS_STAT[:,g,i])/sqrt(DENS_STAT.shape[0]) ) )
       f.write('\n')
     f.close()
 
 
-    print '\nBye!\n'
+    print('\nBye!\n')
 
 
 if __name__ == '__main__':
